@@ -11,7 +11,8 @@ pygame.display.set_caption("Gênio Quiz Troll")
 def carregar_questoes(caminho_json):
     with open(caminho_json, 'r', encoding='utf-8') as f:
         dados = json.load(f)
-    return [Question(q["enunciado"], q["alternativas"], q["correta"]) for q in dados]
+    return [Question(q["enunciado"], q["alternativas"], q["correta"], q.get("tempo", 10), i) for i, q in enumerate(dados)]
+
 
 
 class Game:
@@ -76,7 +77,17 @@ class Game:
                 self.draw_victory()
             elif self.state == "playing":
                 current_question = self.questions[self.current_question_index]
+
+                # Inicia tempo só uma vez
+                if current_question.inicio_tempo is None:
+                    current_question.iniciar_tempo()
+
                 current_question.desenhar(SCREEN)
+
+                # Checa se o tempo acabou
+                if not current_question.foi_respondida() and current_question.tempo_expirou():
+                    self.game_over()
+
 
             pygame.display.flip()
 

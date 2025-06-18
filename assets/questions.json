@@ -2,17 +2,20 @@
   {
     "enunciado": "Qual a capital do Brasil?",
     "alternativas": ["Rio de Janeiro", "Brasília", "São Paulo", "Salvador"],
-    "correta": 1
+    "correta": 1,
+    "tempo": 5
   },
   {
     "enunciado": "Quanto é 7 x 8?",
     "alternativas": ["54", "56", "64", "58"],
-    "correta": 1
+    "correta": 1,
+    "tempo": 3
   },
   {
     "enunciado": "Qual desses é um mamífero?",
     "alternativas": ["Tubarão", "Pinguim", "Golfinho", "Crocodilo"],
-    "correta": 2
+    "correta": 2,
+    "tempo": 5
   },
   {
     "enunciado": "Quem escreveu 'Dom Casmurro'?",
@@ -22,11 +25,13 @@
       "Carlos Drummond",
       "Graciliano Ramos"
     ],
-    "correta": 0
+    "correta": 0,
+    "tempo": 5
   },
   {
     "enunciado": "Qual é a fórmula da água?",
     "alternativas": ["H2O", "CO2", "NaCl", "O2"],
-    "correta": 0
+    "correta": 0,
+    "tempo": 3
   }
 ]

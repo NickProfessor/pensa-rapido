@@ -17,15 +17,36 @@ RESULTADO_POS = (WIDTH // 2, HEIGHT - 50)
 
 
 class Question:
-    def __init__(self, enunciado, alternativas, indice_correta):
+    def __init__(self, enunciado, alternativas, indice_correta, tempo_limite, numero):
         self.enunciado = enunciado
         self.alternativas = alternativas
         self.indice_correta = indice_correta
+        self.tempo_limite = tempo_limite
+        self.inicio_tempo = None
         self.resposta_dada = None
         self.resultado_cor = None
+        self.numero = numero
+
+    def iniciar_tempo(self):
+        self.inicio_tempo = pygame.time.get_ticks()
+
+    def tempo_restante(self):
+        if self.inicio_tempo is None:
+            return self.tempo_limite
+        decorrido = (pygame.time.get_ticks() - self.inicio_tempo) // 1000
+        restante = max(0, self.tempo_limite - decorrido)
+        return restante
+
+    def tempo_expirou(self):
+        return self.tempo_restante() <= 0
+
 
     def desenhar(self, tela):
-        # Enunciado
+        numero_texto = f"{self.numero + 1}"
+        numero_render = FONT.render(numero_texto, True, (0, 0, 0))
+        tela.blit(numero_render, (30, 30))
+
+
         enunciado_text = FONT.render(self.enunciado, True, BLACK)
         en_rect = enunciado_text.get_rect(center=ENUNCIADO_POS)
         tela.blit(enunciado_text, en_rect)
@@ -38,8 +59,8 @@ class Question:
             y = START_Y + row * (ALT_HEIGHT + ALT_SPACING_Y)
 
             rect = pygame.Rect(x, y, ALT_WIDTH, ALT_HEIGHT)
-            pygame.draw.rect(tela, (200, 200, 200), rect)        # fundo cinza
-            pygame.draw.rect(tela, (0, 0, 255), rect, width=3)   # borda azul
+            pygame.draw.rect(tela, (181, 101, 29), rect)        
+            pygame.draw.rect(tela, (101, 67, 33), rect, width=3)   # borda azul
 
             # Texto centralizado
             cor_texto = self.get_cor_alternativa(i)
@@ -54,6 +75,34 @@ class Question:
             resultado_text = FONT.render(msg, True, self.resultado_cor)
             resultado_rect = resultado_text.get_rect(center=RESULTADO_POS)
             tela.blit(resultado_text, resultado_rect)
+
+        # Tempo restante
+        if self.inicio_tempo is not None:
+            tempo_texto = f"00:{self.tempo_restante()}"
+            tempo_render = FONT.render(tempo_texto, True, (0, 0, 0))
+
+            # Define a área do retângulo (baseado no texto)
+            padding_x, padding_y = 20, 10
+            tempo_rect = tempo_render.get_rect()
+            box_width = tempo_rect.width + 2 * padding_x
+            box_height = tempo_rect.height + 2 * padding_y
+
+            # Posiciona no meio vertical e na lateral direita
+            box_x = WIDTH - box_width - 30
+            box_y = 60
+            caixa_rect = pygame.Rect(box_x, box_y, box_width, box_height)
+
+            # Desenha o fundo cinza
+            pygame.draw.rect(tela, (200, 200, 200), caixa_rect)
+
+            # Desenha a borda azul
+            pygame.draw.rect(tela, (0, 0, 255), caixa_rect, 3)
+
+            # Renderiza o texto no centro do retângulo
+            tempo_texto_pos = tempo_render.get_rect(center=caixa_rect.center)
+            tela.blit(tempo_render, tempo_texto_pos)
+
+
 
     def get_cor_alternativa(self, i):
         if self.resposta_dada is None:
