@@ -1,20 +1,33 @@
 import pygame
 import sys
+import json
 from .button import Button
 from .config import FONT, WIDTH, HEIGHT, WHITE, BLACK
+from .question import Question
 
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Gênio Quiz Troll")
+
+def carregar_questoes(caminho_json):
+    with open(caminho_json, 'r', encoding='utf-8') as f:
+        dados = json.load(f)
+    return [Question(q["enunciado"], q["alternativas"], q["correta"]) for q in dados]
+
 
 class Game:
     def __init__(self):
         self.running = True
         self.state = "menu"
         self.start_button = Button("Começar", 300, 400, 200, 60, self.start_game)
+        self.retry_button = Button("Recomeçar", WIDTH - 200 - 0.1 * 200, 400, 200, 60, self.back_to_menu)
+        self.questions = carregar_questoes("assets/questions.json")
+        self.current_question_index = 0
+
+
 
     def start_game(self):
         print("Jogo começou!")
-        self.state = "jogando"
+        self.state = "playing"
 
     def run(self):
         while self.running:
@@ -23,18 +36,53 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                if self.state == "menu" and event.type == pygame.MOUSEBUTTONDOWN:
-                    self.start_button.check_click(event.pos)
 
+                if self.state == "menu":
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        self.start_button.check_click(event.pos)
+
+                elif self.state == "game_over":
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        self.retry_button.check_click(event.pos)
+
+                elif self.state == "victory":
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        self.retry_button.check_click(event.pos)
+
+                elif self.state == "playing":
+                    current_question = self.questions[self.current_question_index]
+
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if not current_question.foi_respondida():
+                            if current_question.checar_resposta(event.pos):
+                                pygame.time.set_timer(pygame.USEREVENT + 1, 1500)
+
+                    if event.type == pygame.USEREVENT + 1:
+                        pygame.time.set_timer(pygame.USEREVENT + 1, 0)
+
+                        if not current_question.resposta_correta():
+                            self.game_over()
+                        else:
+                            self.current_question_index += 1
+                            if self.current_question_index >= len(self.questions):
+                                self.win_game()
+
+            # Fora do loop de eventos!
             if self.state == "menu":
                 self.draw_menu()
-            elif self.state == "jogando":
-                self.draw_game()
+            elif self.state == "game_over":
+                self.draw_game_over()
+            elif self.state == "victory":
+                self.draw_victory()
+            elif self.state == "playing":
+                current_question = self.questions[self.current_question_index]
+                current_question.desenhar(SCREEN)
 
             pygame.display.flip()
 
         pygame.quit()
         sys.exit()
+
 
     def draw_menu(self):
         # Título principal
@@ -51,6 +99,30 @@ class Game:
         SCREEN.blit(autor_title, autor_rect)
 
 
-    def draw_game(self):
-        text = FONT.render("Aqui começa o jogo!", True, BLACK)
-        SCREEN.blit(text, (250, 280))
+
+    def game_over(self):
+        self.state = "game_over"
+
+    def back_to_menu(self):
+        self.state = "menu"
+        self.current_question_index = 0
+        self.questions = carregar_questoes("assets/questions.json")
+
+
+    def draw_game_over(self):
+        game_over_text = FONT.render("You fail!", True, (255, 0, 0))
+        text_rect = game_over_text.get_rect(center=(WIDTH // 2, 200))
+        SCREEN.blit(game_over_text, text_rect)
+
+        self.retry_button.draw(SCREEN)
+
+    def draw_victory(self):
+        victory_text = FONT.render("Parabéns! Você venceu!", True, (0, 180, 0))
+        text_rect = victory_text.get_rect(center=(WIDTH // 2, 200))
+        SCREEN.blit(victory_text, text_rect)
+
+        self.retry_button.draw(SCREEN)
+
+    def win_game(self):
+        self.state = "victory"
+
