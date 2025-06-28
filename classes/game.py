@@ -2,16 +2,28 @@ import pygame
 import sys
 import json
 from .button import Button
-from .config import FONT, WIDTH, HEIGHT, WHITE, BLACK
+from .config import FONT, WIDTH, HEIGHT, WHITE, BLACK, FONT_TITULO
 from .question import Question
 
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Gênio Quiz Troll")
+pygame.display.set_caption("Pensa Rápido")
 
 def carregar_questoes(caminho_json):
     with open(caminho_json, 'r', encoding='utf-8') as f:
         dados = json.load(f)
-    return [Question(q["enunciado"], q["alternativas"], q["correta"], q.get("tempo", 10), i) for i, q in enumerate(dados)]
+
+    perguntas = []
+    for i, q in enumerate(dados):
+        perguntas.append(Question(
+            enunciado=q["enunciado"],
+            alternativas=q["alternativas"],
+            indice_correta=q.get("correta", -1),  # padrão -1 se não houver correta
+            tempo_limite=q.get("tempo", 10),
+            numero=i,
+            resposta_troll=q.get("resposta_troll")  # pode ser None
+        ))
+    return perguntas
+
 
 
 
@@ -56,7 +68,7 @@ class Game:
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if not current_question.foi_respondida():
                             if current_question.checar_resposta(event.pos):
-                                pygame.time.set_timer(pygame.USEREVENT + 1, 1500)
+                                pygame.time.set_timer(pygame.USEREVENT + 1, 100)
 
                     if event.type == pygame.USEREVENT + 1:
                         pygame.time.set_timer(pygame.USEREVENT + 1, 0)
@@ -97,7 +109,7 @@ class Game:
 
     def draw_menu(self):
         # Título principal
-        title = FONT.render("Gênio Quiz Troll", True, BLACK)
+        title = FONT_TITULO.render("Pensa rápido!", True, BLACK)
         rect = title.get_rect(center=(WIDTH // 2, 150))
         SCREEN.blit(title, rect)
 
