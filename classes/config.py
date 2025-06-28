@@ -4,7 +4,8 @@ import pygame
 pygame.init()
 
 # Fonte e dimensões
-FONT = pygame.font.SysFont("arial", 36)
+FONT = pygame.font.SysFont("sans-serif", 38)
+FONT_TITULO = pygame.font.SysFont("sans-serif", 48)
 WIDTH, HEIGHT = 800, 600
 
 # Cores
